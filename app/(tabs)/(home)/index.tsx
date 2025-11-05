@@ -1,105 +1,196 @@
-import React from "react";
-import { Stack, Link } from "expo-router";
-import { FlatList, Pressable, StyleSheet, View, Text, Alert, Platform } from "react-native";
-import { IconSymbol } from "@/components/IconSymbol";
-import { GlassView } from "expo-glass-effect";
-import { useTheme } from "@react-navigation/native";
 
-const ICON_COLOR = "#007AFF";
+import React from "react";
+import { Stack, useRouter } from "expo-router";
+import { ScrollView, Pressable, StyleSheet, View, Text, Platform, Linking } from "react-native";
+import { IconSymbol } from "@/components/IconSymbol";
+import { LinearGradient } from "expo-linear-gradient";
+import { colors, commonStyles, buttonStyles } from "@/styles/commonStyles";
 
 export default function HomeScreen() {
-  const theme = useTheme();
-  const modalDemos = [
+  const router = useRouter();
+
+  const openWhatsApp = () => {
+    const phoneNumber = "263779925482";
+    const message = "Hi! I'd like to request an errand service.";
+    const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+    Linking.openURL(url);
+  };
+
+  const features = [
     {
-      title: "Standard Modal",
-      description: "Full screen modal presentation",
-      route: "/modal",
-      color: "#007AFF",
+      icon: "location.fill",
+      title: "Easy Pickup & Delivery",
+      description: "Select your locations and we'll handle the rest",
+      color: colors.primary,
     },
     {
-      title: "Form Sheet",
-      description: "Bottom sheet with detents and grabber",
-      route: "/formsheet",
-      color: "#34C759",
+      icon: "dollarsign.circle.fill",
+      title: "Flexible Pricing",
+      description: "Propose your price or accept our suggestion",
+      color: colors.secondary,
     },
     {
-      title: "Transparent Modal",
-      description: "Overlay without obscuring background",
-      route: "/transparent-modal",
-      color: "#FF9500",
-    }
+      icon: "clock.fill",
+      title: "Real-Time Updates",
+      description: "Track your errand from start to finish",
+      color: colors.primary,
+    },
+    {
+      icon: "checkmark.circle.fill",
+      title: "Reliable Service",
+      description: "Professional errand runners you can trust",
+      color: colors.secondary,
+    },
   ];
-
-  const renderModalDemo = ({ item }: { item: (typeof modalDemos)[0] }) => (
-    <GlassView style={[
-      styles.demoCard,
-      Platform.OS !== 'ios' && { backgroundColor: theme.dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }
-    ]} glassEffectStyle="regular">
-      <View style={[styles.demoIcon, { backgroundColor: item.color }]}>
-        <IconSymbol name="square.grid.3x3" color="white" size={24} />
-      </View>
-      <View style={styles.demoContent}>
-        <Text style={[styles.demoTitle, { color: theme.colors.text }]}>{item.title}</Text>
-        <Text style={[styles.demoDescription, { color: theme.dark ? '#98989D' : '#666' }]}>{item.description}</Text>
-      </View>
-      <Link href={item.route as any} asChild>
-        <Pressable>
-          <GlassView style={[
-            styles.tryButton,
-            Platform.OS !== 'ios' && { backgroundColor: theme.dark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)' }
-          ]} glassEffectStyle="clear">
-            <Text style={[styles.tryButtonText, { color: theme.colors.primary }]}>Try It</Text>
-          </GlassView>
-        </Pressable>
-      </Link>
-    </GlassView>
-  );
-
-  const renderHeaderRight = () => (
-    <Pressable
-      onPress={() => Alert.alert("Not Implemented", "This feature is not implemented yet")}
-      style={styles.headerButtonContainer}
-    >
-      <IconSymbol name="plus" color={theme.colors.primary} />
-    </Pressable>
-  );
-
-  const renderHeaderLeft = () => (
-    <Pressable
-      onPress={() => Alert.alert("Not Implemented", "This feature is not implemented yet")}
-      style={styles.headerButtonContainer}
-    >
-      <IconSymbol
-        name="gear"
-        color={theme.colors.primary}
-      />
-    </Pressable>
-  );
 
   return (
     <>
       {Platform.OS === 'ios' && (
         <Stack.Screen
           options={{
-            title: "Building the app...",
-            headerRight: renderHeaderRight,
-            headerLeft: renderHeaderLeft,
+            title: "Mr Errands Guy",
+            headerStyle: {
+              backgroundColor: colors.primary,
+            },
+            headerTintColor: '#FFFFFF',
           }}
         />
       )}
-      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-        <FlatList
-          data={modalDemos}
-          renderItem={renderModalDemo}
-          keyExtractor={(item) => item.route}
-          contentContainerStyle={[
-            styles.listContainer,
-            Platform.OS !== 'ios' && styles.listContainerWithTabBar
-          ]}
-          contentInsetAdjustmentBehavior="automatic"
-          showsVerticalScrollIndicator={false}
-        />
-      </View>
+      <ScrollView 
+        style={[styles.container, { backgroundColor: colors.background }]}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Hero Section */}
+        <LinearGradient
+          colors={[colors.primary, colors.secondary]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.heroSection}
+        >
+          <Text style={styles.heroTitle}>Mr Errands Guy</Text>
+          <Text style={styles.heroSubtitle}>Your Trusted Errand Runner</Text>
+          <Text style={styles.heroDescription}>
+            Fast, reliable, and affordable errand services at your fingertips
+          </Text>
+        </LinearGradient>
+
+        {/* Quick Actions */}
+        <View style={styles.quickActions}>
+          <Pressable 
+            style={[buttonStyles.primary, styles.actionButton]}
+            onPress={() => router.push('/booking')}
+          >
+            <IconSymbol name="plus.circle.fill" size={24} color="#FFFFFF" />
+            <Text style={[commonStyles.buttonText, styles.actionButtonText]}>
+              Request Errand
+            </Text>
+          </Pressable>
+
+          <Pressable 
+            style={[buttonStyles.whatsapp, styles.actionButton]}
+            onPress={openWhatsApp}
+          >
+            <IconSymbol name="message.fill" size={24} color="#FFFFFF" />
+            <Text style={[commonStyles.buttonText, styles.actionButtonText]}>
+              WhatsApp Us
+            </Text>
+          </Pressable>
+        </View>
+
+        {/* Features Grid */}
+        <View style={styles.featuresSection}>
+          <Text style={[commonStyles.subtitle, styles.sectionTitle]}>
+            Why Choose Us?
+          </Text>
+          <View style={styles.featuresGrid}>
+            {features.map((feature, index) => (
+              <View key={index} style={[commonStyles.card, styles.featureCard]}>
+                <View style={[styles.featureIcon, { backgroundColor: feature.color }]}>
+                  <IconSymbol name={feature.icon as any} size={28} color="#FFFFFF" />
+                </View>
+                <Text style={styles.featureTitle}>{feature.title}</Text>
+                <Text style={styles.featureDescription}>{feature.description}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* How It Works */}
+        <View style={styles.howItWorksSection}>
+          <Text style={[commonStyles.subtitle, styles.sectionTitle]}>
+            How It Works
+          </Text>
+          <View style={commonStyles.card}>
+            <View style={styles.stepContainer}>
+              <View style={styles.stepNumber}>
+                <Text style={styles.stepNumberText}>1</Text>
+              </View>
+              <View style={styles.stepContent}>
+                <Text style={styles.stepTitle}>Submit Your Request</Text>
+                <Text style={commonStyles.textSecondary}>
+                  Fill in pickup and delivery details
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.stepContainer}>
+              <View style={styles.stepNumber}>
+                <Text style={styles.stepNumberText}>2</Text>
+              </View>
+              <View style={styles.stepContent}>
+                <Text style={styles.stepTitle}>Propose Your Price</Text>
+                <Text style={commonStyles.textSecondary}>
+                  Set your budget or accept our suggestion
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.stepContainer}>
+              <View style={styles.stepNumber}>
+                <Text style={styles.stepNumberText}>3</Text>
+              </View>
+              <View style={styles.stepContent}>
+                <Text style={styles.stepTitle}>We Accept & Deliver</Text>
+                <Text style={commonStyles.textSecondary}>
+                  Track your errand in real-time
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Navigation Cards */}
+        <View style={styles.navigationSection}>
+          <Pressable 
+            style={[commonStyles.card, styles.navCard]}
+            onPress={() => router.push('/client-dashboard')}
+          >
+            <IconSymbol name="list.bullet.clipboard" size={32} color={colors.primary} />
+            <Text style={styles.navCardTitle}>My Errands</Text>
+            <Text style={commonStyles.textSecondary}>View your booking history</Text>
+          </Pressable>
+
+          <Pressable 
+            style={[commonStyles.card, styles.navCard]}
+            onPress={() => router.push('/admin-dashboard')}
+          >
+            <IconSymbol name="chart.bar.fill" size={32} color={colors.secondary} />
+            <Text style={styles.navCardTitle}>Admin Dashboard</Text>
+            <Text style={commonStyles.textSecondary}>Manage all requests</Text>
+          </Pressable>
+        </View>
+
+        {/* Footer */}
+        <View style={styles.footer}>
+          <Text style={commonStyles.textSecondary}>
+            Need help? Contact us on WhatsApp
+          </Text>
+          <Pressable onPress={openWhatsApp}>
+            <Text style={styles.footerLink}>+263 779 925 482</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
     </>
   );
 }
@@ -107,55 +198,147 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // backgroundColor handled dynamically
   },
-  listContainer: {
-    paddingVertical: 16,
-    paddingHorizontal: 16,
+  scrollContent: {
+    paddingBottom: Platform.OS === 'ios' ? 20 : 100,
   },
-  listContainerWithTabBar: {
-    paddingBottom: 100, // Extra padding for floating tab bar
-  },
-  demoCard: {
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    flexDirection: 'row',
+  heroSection: {
+    paddingVertical: 48,
+    paddingHorizontal: 24,
     alignItems: 'center',
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
   },
-  demoIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+  heroTitle: {
+    fontSize: 36,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  heroSubtitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  heroDescription: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    textAlign: 'center',
+    opacity: 0.9,
+  },
+  quickActions: {
+    paddingHorizontal: 20,
+    marginTop: 24,
+    gap: 12,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  actionButtonText: {
+    marginLeft: 8,
+  },
+  featuresSection: {
+    paddingHorizontal: 20,
+    marginTop: 32,
+  },
+  sectionTitle: {
+    marginBottom: 16,
+  },
+  featuresGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    justifyContent: 'space-between',
+  },
+  featureCard: {
+    width: '48%',
+    alignItems: 'center',
+    padding: 20,
+  },
+  featureIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  featureTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.text,
+    textAlign: 'center',
+    marginBottom: 6,
+  },
+  featureDescription: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  howItWorksSection: {
+    paddingHorizontal: 20,
+    marginTop: 32,
+  },
+  stepContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 20,
+  },
+  stepNumber: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
   },
-  demoContent: {
-    flex: 1,
-  },
-  demoTitle: {
+  stepNumberText: {
     fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  stepContent: {
+    flex: 1,
+    paddingTop: 4,
+  },
+  stepTitle: {
+    fontSize: 16,
     fontWeight: '600',
+    color: colors.text,
     marginBottom: 4,
-    // color handled dynamically
   },
-  demoDescription: {
-    fontSize: 14,
-    lineHeight: 18,
-    // color handled dynamically
+  navigationSection: {
+    paddingHorizontal: 20,
+    marginTop: 32,
+    gap: 12,
   },
-  headerButtonContainer: {
-    padding: 6,
+  navCard: {
+    alignItems: 'center',
+    padding: 24,
   },
-  tryButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 6,
+  navCardTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
+    marginTop: 12,
+    marginBottom: 6,
   },
-  tryButtonText: {
-    fontSize: 14,
+  footer: {
+    paddingHorizontal: 20,
+    marginTop: 32,
+    alignItems: 'center',
+    paddingBottom: 20,
+  },
+  footerLink: {
+    fontSize: 16,
     fontWeight: '600',
-    // color handled dynamically
+    color: colors.primary,
+    marginTop: 8,
   },
 });
