@@ -1,3 +1,4 @@
+
 import "react-native-reanimated";
 import React, { useEffect } from "react";
 import { useFonts } from "expo-font";
@@ -16,6 +17,27 @@ import {
 import { StatusBar } from "expo-status-bar";
 import { Button } from "@/components/button";
 import { WidgetProvider } from "@/contexts/WidgetContext";
+
+/**
+ * Mr Errands Guy - Web & Mobile App
+ * 
+ * This app now supports web, iOS, and Android platforms!
+ * 
+ * To run as a website:
+ * 1. Run: npm run web
+ * 2. Open browser to the URL shown (usually http://localhost:8081)
+ * 3. The app will automatically adapt to web platform
+ * 
+ * Features:
+ * - Responsive design for desktop and mobile browsers
+ * - Web-optimized navigation with custom tab bar
+ * - Platform-specific features (location services work differently on web)
+ * - WhatsApp integration works on all platforms
+ * - File uploads adapted for web (uses HTML file input)
+ * 
+ * Note: Some native features like expo-location have limited web support.
+ * The app gracefully handles these differences.
+ */
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -114,6 +136,12 @@ export default function RootLayout() {
                   headerShown: false,
                 }}
               />
+              
+              {/* Booking and Dashboard Screens */}
+              <Stack.Screen name="booking" options={{ headerShown: false }} />
+              <Stack.Screen name="client-dashboard" options={{ headerShown: false }} />
+              <Stack.Screen name="admin-dashboard" options={{ headerShown: false }} />
+              <Stack.Screen name="tracking" options={{ headerShown: false }} />
             </Stack>
             <SystemBars style={"auto"} />
             </GestureHandlerRootView>

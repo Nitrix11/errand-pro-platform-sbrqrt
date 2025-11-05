@@ -40,10 +40,16 @@ export default function BookingScreen() {
   const [loadingDropoff, setLoadingDropoff] = useState(false);
 
   useEffect(() => {
-    requestLocationPermissions();
+    if (Platform.OS !== 'web') {
+      requestLocationPermissions();
+    }
   }, []);
 
   const requestLocationPermissions = async () => {
+    if (Platform.OS === 'web') {
+      console.log('Location permissions not needed on web');
+      return;
+    }
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') {
       console.log('Location permission denied');
@@ -51,6 +57,47 @@ export default function BookingScreen() {
   };
 
   const getCurrentLocation = async (isPickup: boolean) => {
+    if (Platform.OS === 'web') {
+      Alert.alert(
+        'Web Platform',
+        'Geolocation on web requires HTTPS and user permission. Please enter your address manually or use the browser location API.',
+        [{ text: 'OK' }]
+      );
+      
+      // Try to use browser geolocation API
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            const { latitude, longitude } = position.coords;
+            
+            // For web, we'll just set coordinates without reverse geocoding
+            const locationData: LocationData = {
+              address: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
+              latitude,
+              longitude,
+            };
+
+            if (isPickup) {
+              setPickupLocation(locationData);
+              setPickupAddress(locationData.address);
+            } else {
+              setDropoffLocation(locationData);
+              setDropoffAddress(locationData.address);
+            }
+
+            Alert.alert('Success', 'Location captured! Please enter a full address for better accuracy.');
+          },
+          (error) => {
+            console.error('Geolocation error:', error);
+            Alert.alert('Error', 'Could not get location. Please enter address manually.');
+          }
+        );
+      } else {
+        Alert.alert('Not Supported', 'Geolocation is not supported by your browser. Please enter address manually.');
+      }
+      return;
+    }
+
     try {
       if (isPickup) {
         setLoadingPickup(true);
@@ -110,6 +157,11 @@ export default function BookingScreen() {
 
   const geocodeAddress = async (address: string, isPickup: boolean) => {
     if (!address || address.length < 5) return;
+    if (Platform.OS === 'web') {
+      // On web, we'll skip geocoding and just use the address
+      console.log('Geocoding not available on web, using address as-is');
+      return;
+    }
 
     try {
       const locations = await Location.geocodeAsync(address);
@@ -177,6 +229,26 @@ export default function BookingScreen() {
   }, [pickupLocation, dropoffLocation]);
 
   const pickImage = async () => {
+    if (Platform.OS === 'web') {
+      // On web, use HTML file input
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = (e: any) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (event: any) => {
+            setUploadedFile(event.target.result);
+            Alert.alert("Success", "File uploaded successfully!");
+          };
+          reader.readAsDataURL(file);
+        }
+      };
+      input.click();
+      return;
+    }
+
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
@@ -254,7 +326,9 @@ export default function BookingScreen() {
         <View style={styles.formSection}>
           <Text style={commonStyles.subtitle}>Errand Details</Text>
           <Text style={commonStyles.textSecondary}>
-            Select locations on map or enter addresses manually
+            {Platform.OS === 'web' 
+              ? 'Enter pickup and delivery addresses below'
+              : 'Select locations on map or enter addresses manually'}
           </Text>
 
           {/* Map Notice */}
@@ -263,7 +337,9 @@ export default function BookingScreen() {
             <View style={styles.mapNoticeText}>
               <Text style={styles.mapNoticeTitle}>Location Selection</Text>
               <Text style={commonStyles.textSecondary}>
-                Use "Get Current Location" or enter addresses manually. We'll calculate the distance automatically.
+                {Platform.OS === 'web'
+                  ? 'Enter your addresses manually. Distance will be estimated automatically.'
+                  : 'Use "Get Current Location" or enter addresses manually. We\'ll calculate the distance automatically.'}
               </Text>
             </View>
           </View>
@@ -281,27 +357,35 @@ export default function BookingScreen() {
                   value={pickupAddress}
                   onChangeText={(text) => {
                     setPickupAddress(text);
-                    geocodeAddress(text, true);
+                    if (Platform.OS !== 'web') {
+                      geocodeAddress(text, true);
+                    }
                   }}
-                  onBlur={() => geocodeAddress(pickupAddress, true)}
+                  onBlur={() => {
+                    if (Platform.OS !== 'web') {
+                      geocodeAddress(pickupAddress, true);
+                    }
+                  }}
                 />
               </View>
-              <Pressable 
-                style={[buttonStyles.secondary, styles.locationButton]}
-                onPress={() => getCurrentLocation(true)}
-                disabled={loadingPickup}
-              >
-                {loadingPickup ? (
-                  <ActivityIndicator color="#FFFFFF" size="small" />
-                ) : (
-                  <>
-                    <IconSymbol name="location.circle.fill" size={18} color="#FFFFFF" />
-                    <Text style={[commonStyles.buttonText, styles.locationButtonText]}>
-                      Use Current
-                    </Text>
-                  </>
-                )}
-              </Pressable>
+              {Platform.OS !== 'web' && (
+                <Pressable 
+                  style={[buttonStyles.secondary, styles.locationButton]}
+                  onPress={() => getCurrentLocation(true)}
+                  disabled={loadingPickup}
+                >
+                  {loadingPickup ? (
+                    <ActivityIndicator color="#FFFFFF" size="small" />
+                  ) : (
+                    <>
+                      <IconSymbol name="location.circle.fill" size={18} color="#FFFFFF" />
+                      <Text style={[commonStyles.buttonText, styles.locationButtonText]}>
+                        Use Current
+                      </Text>
+                    </>
+                  )}
+                </Pressable>
+              )}
             </View>
             {pickupLocation && (
               <View style={styles.coordinatesDisplay}>
@@ -325,27 +409,35 @@ export default function BookingScreen() {
                   value={dropoffAddress}
                   onChangeText={(text) => {
                     setDropoffAddress(text);
-                    geocodeAddress(text, false);
+                    if (Platform.OS !== 'web') {
+                      geocodeAddress(text, false);
+                    }
                   }}
-                  onBlur={() => geocodeAddress(dropoffAddress, false)}
+                  onBlur={() => {
+                    if (Platform.OS !== 'web') {
+                      geocodeAddress(dropoffAddress, false);
+                    }
+                  }}
                 />
               </View>
-              <Pressable 
-                style={[buttonStyles.secondary, styles.locationButton]}
-                onPress={() => getCurrentLocation(false)}
-                disabled={loadingDropoff}
-              >
-                {loadingDropoff ? (
-                  <ActivityIndicator color="#FFFFFF" size="small" />
-                ) : (
-                  <>
-                    <IconSymbol name="location.circle.fill" size={18} color="#FFFFFF" />
-                    <Text style={[commonStyles.buttonText, styles.locationButtonText]}>
-                      Use Current
-                    </Text>
-                  </>
-                )}
-              </Pressable>
+              {Platform.OS !== 'web' && (
+                <Pressable 
+                  style={[buttonStyles.secondary, styles.locationButton]}
+                  onPress={() => getCurrentLocation(false)}
+                  disabled={loadingDropoff}
+                >
+                  {loadingDropoff ? (
+                    <ActivityIndicator color="#FFFFFF" size="small" />
+                  ) : (
+                    <>
+                      <IconSymbol name="location.circle.fill" size={18} color="#FFFFFF" />
+                      <Text style={[commonStyles.buttonText, styles.locationButtonText]}>
+                        Use Current
+                      </Text>
+                    </>
+                  )}
+                </Pressable>
+              )}
             </View>
             {dropoffLocation && (
               <View style={styles.coordinatesDisplay}>
@@ -355,6 +447,17 @@ export default function BookingScreen() {
               </View>
             )}
           </View>
+
+          {/* Calculate Distance Button for Web */}
+          {Platform.OS === 'web' && pickupAddress && dropoffAddress && !distance && (
+            <Pressable 
+              style={[buttonStyles.secondary, styles.calculateButton]}
+              onPress={calculateDistance}
+            >
+              <IconSymbol name="arrow.left.arrow.right" size={18} color="#FFFFFF" />
+              <Text style={commonStyles.buttonText}>Calculate Distance</Text>
+            </Pressable>
+          )}
 
           {/* Distance Display */}
           {distance && (
@@ -471,12 +574,22 @@ export default function BookingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    ...(Platform.OS === 'web' && {
+      maxWidth: 1200,
+      marginHorizontal: 'auto',
+      width: '100%',
+    }),
   },
   scrollContent: {
-    paddingBottom: Platform.OS === 'ios' ? 20 : 100,
+    paddingBottom: Platform.OS === 'ios' ? 20 : Platform.OS === 'web' ? 40 : 100,
   },
   formSection: {
     padding: 20,
+    ...(Platform.OS === 'web' && {
+      maxWidth: 800,
+      marginHorizontal: 'auto',
+      width: '100%',
+    }),
   },
   mapNotice: {
     flexDirection: 'row',
@@ -524,6 +637,11 @@ const styles = StyleSheet.create({
   locationButtonText: {
     fontSize: 14,
   },
+  calculateButton: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 16,
+  },
   coordinatesDisplay: {
     marginTop: 8,
     padding: 8,
@@ -533,7 +651,7 @@ const styles = StyleSheet.create({
   coordinatesText: {
     fontSize: 12,
     color: colors.textSecondary,
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : Platform.OS === 'web' ? 'monospace' : 'monospace',
   },
   distanceCard: {
     flexDirection: 'row',

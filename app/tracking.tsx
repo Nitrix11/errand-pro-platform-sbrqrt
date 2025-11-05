@@ -13,7 +13,6 @@ import {
 } from "react-native";
 import { IconSymbol } from "@/components/IconSymbol";
 import { colors, commonStyles, buttonStyles } from "@/styles/commonStyles";
-import * as Location from 'expo-location';
 
 interface TrackingLocation {
   latitude: number;
@@ -131,191 +130,196 @@ export default function TrackingScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Map Notice */}
-        <View style={[commonStyles.card, styles.mapNotice]}>
-          <IconSymbol name="info.circle.fill" size={24} color={colors.secondary} />
-          <View style={styles.mapNoticeText}>
-            <Text style={styles.mapNoticeTitle}>Live Tracking</Text>
-            <Text style={commonStyles.textSecondary}>
-              Note: Interactive maps (react-native-maps) are not supported in Natively. 
-              Location updates are shown below with coordinates and status.
-            </Text>
-          </View>
-        </View>
-
-        {/* Status Card */}
-        <View style={[commonStyles.card, styles.statusCard]}>
-          <View style={styles.statusHeader}>
-            <View style={[styles.statusBadge, { backgroundColor: getStatusColor() }]}>
-              <Text style={styles.statusBadgeText}>{status}</Text>
-            </View>
-            <Text style={styles.bookingId}>#{bookingId}</Text>
-          </View>
-
-          <View style={styles.etaContainer}>
-            <IconSymbol name="clock.fill" size={32} color={colors.primary} />
-            <View style={styles.etaInfo}>
-              <Text style={styles.etaLabel}>Estimated Time</Text>
-              <Text style={styles.etaValue}>{estimatedTime}</Text>
-            </View>
-          </View>
-
-          {/* Progress Bar */}
-          <View style={styles.progressContainer}>
-            <View style={styles.progressBar}>
-              <View 
-                style={[
-                  styles.progressFill, 
-                  { 
-                    width: `${progress * 100}%`,
-                    backgroundColor: getStatusColor(),
-                  }
-                ]} 
-              />
-            </View>
-            <Text style={styles.progressText}>{Math.round(progress * 100)}% Complete</Text>
-          </View>
-
-          {/* Journey Steps */}
-          <View style={styles.journeySteps}>
-            <View style={styles.journeyStep}>
-              <View style={[
-                styles.stepIndicator, 
-                progress >= 0 && styles.stepIndicatorActive
-              ]}>
-                {progress >= 0.3 ? (
-                  <IconSymbol name="checkmark" size={16} color="#FFFFFF" />
-                ) : (
-                  <View style={styles.stepDot} />
-                )}
-              </View>
-              <View style={styles.stepContent}>
-                <Text style={styles.stepTitle}>Pickup Location</Text>
-                <Text style={styles.stepSubtitle}>Runner heading to pickup</Text>
-              </View>
-            </View>
-
-            <View style={styles.stepConnector} />
-
-            <View style={styles.journeyStep}>
-              <View style={[
-                styles.stepIndicator, 
-                progress >= 0.5 && styles.stepIndicatorActive
-              ]}>
-                {progress >= 0.8 ? (
-                  <IconSymbol name="checkmark" size={16} color="#FFFFFF" />
-                ) : (
-                  <View style={styles.stepDot} />
-                )}
-              </View>
-              <View style={styles.stepContent}>
-                <Text style={styles.stepTitle}>In Transit</Text>
-                <Text style={styles.stepSubtitle}>Package picked up</Text>
-              </View>
-            </View>
-
-            <View style={styles.stepConnector} />
-
-            <View style={styles.journeyStep}>
-              <View style={[
-                styles.stepIndicator, 
-                progress >= 1 && styles.stepIndicatorActive
-              ]}>
-                {progress >= 1 ? (
-                  <IconSymbol name="checkmark" size={16} color="#FFFFFF" />
-                ) : (
-                  <View style={styles.stepDot} />
-                )}
-              </View>
-              <View style={styles.stepContent}>
-                <Text style={styles.stepTitle}>Delivery Location</Text>
-                <Text style={styles.stepSubtitle}>Final destination</Text>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        {/* Runner Location Card */}
-        {runnerLocation && (
-          <View style={[commonStyles.card, styles.locationCard]}>
-            <View style={styles.locationHeader}>
-              <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-                <View style={styles.runnerMarker}>
-                  <IconSymbol name="figure.walk" size={24} color="#FFFFFF" />
-                </View>
-              </Animated.View>
-              <View style={styles.locationInfo}>
-                <Text style={styles.locationTitle}>Runner Location</Text>
-                <Text style={styles.locationSubtitle}>Last updated: just now</Text>
-              </View>
-            </View>
-
-            <View style={styles.coordinatesContainer}>
-              <View style={styles.coordinateRow}>
-                <Text style={styles.coordinateLabel}>Latitude:</Text>
-                <Text style={styles.coordinateValue}>
-                  {runnerLocation.latitude.toFixed(6)}
-                </Text>
-              </View>
-              <View style={styles.coordinateRow}>
-                <Text style={styles.coordinateLabel}>Longitude:</Text>
-                <Text style={styles.coordinateValue}>
-                  {runnerLocation.longitude.toFixed(6)}
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.mapPlaceholder}>
-              <IconSymbol name="map.fill" size={48} color={colors.textSecondary} />
-              <Text style={styles.mapPlaceholderText}>
-                Map visualization would appear here
-              </Text>
+        <View style={styles.contentWrapper}>
+          {/* Map Notice */}
+          <View style={[commonStyles.card, styles.mapNotice]}>
+            <IconSymbol name="info.circle.fill" size={24} color={colors.secondary} />
+            <View style={styles.mapNoticeText}>
+              <Text style={styles.mapNoticeTitle}>Live Tracking</Text>
               <Text style={commonStyles.textSecondary}>
-                (Interactive maps not available in Natively)
+                {Platform.OS === 'web' 
+                  ? 'Real-time location tracking is shown below with coordinates and status updates.'
+                  : 'Note: Interactive maps (react-native-maps) are not supported in Natively. Location updates are shown below with coordinates and status.'}
               </Text>
             </View>
           </View>
-        )}
 
-        {/* Action Buttons */}
-        <View style={styles.actionsContainer}>
-          <Pressable 
-            style={[buttonStyles.whatsapp, styles.actionButton]}
-            onPress={contactRunner}
-          >
-            <IconSymbol name="message.fill" size={20} color="#FFFFFF" />
-            <Text style={commonStyles.buttonText}>Contact Runner</Text>
-          </Pressable>
+          {/* Status Card */}
+          <View style={[commonStyles.card, styles.statusCard]}>
+            <View style={styles.statusHeader}>
+              <View style={[styles.statusBadge, { backgroundColor: getStatusColor() }]}>
+                <Text style={styles.statusBadgeText}>{status}</Text>
+              </View>
+              <Text style={styles.bookingId}>#{bookingId}</Text>
+            </View>
 
-          <Pressable 
-            style={[buttonStyles.outline, styles.actionButton]}
-            onPress={() => router.back()}
-          >
-            <IconSymbol name="arrow.left" size={20} color={colors.primary} />
-            <Text style={commonStyles.buttonTextPrimary}>Back to Dashboard</Text>
-          </Pressable>
-        </View>
+            <View style={styles.etaContainer}>
+              <IconSymbol name="clock.fill" size={32} color={colors.primary} />
+              <View style={styles.etaInfo}>
+                <Text style={styles.etaLabel}>Estimated Time</Text>
+                <Text style={styles.etaValue}>{estimatedTime}</Text>
+              </View>
+            </View>
 
-        {/* Delivery Instructions */}
-        <View style={[commonStyles.card, styles.instructionsCard]}>
-          <Text style={styles.instructionsTitle}>Delivery Instructions</Text>
-          <View style={styles.instructionItem}>
-            <IconSymbol name="bell.fill" size={20} color={colors.secondary} />
-            <Text style={styles.instructionText}>
-              You'll receive a notification when the runner arrives
-            </Text>
+            {/* Progress Bar */}
+            <View style={styles.progressContainer}>
+              <View style={styles.progressBar}>
+                <View 
+                  style={[
+                    styles.progressFill, 
+                    { 
+                      width: `${progress * 100}%`,
+                      backgroundColor: getStatusColor(),
+                    }
+                  ]} 
+                />
+              </View>
+              <Text style={styles.progressText}>{Math.round(progress * 100)}% Complete</Text>
+            </View>
+
+            {/* Journey Steps */}
+            <View style={styles.journeySteps}>
+              <View style={styles.journeyStep}>
+                <View style={[
+                  styles.stepIndicator, 
+                  progress >= 0 && styles.stepIndicatorActive
+                ]}>
+                  {progress >= 0.3 ? (
+                    <IconSymbol name="checkmark" size={16} color="#FFFFFF" />
+                  ) : (
+                    <View style={styles.stepDot} />
+                  )}
+                </View>
+                <View style={styles.stepContent}>
+                  <Text style={styles.stepTitle}>Pickup Location</Text>
+                  <Text style={styles.stepSubtitle}>Runner heading to pickup</Text>
+                </View>
+              </View>
+
+              <View style={styles.stepConnector} />
+
+              <View style={styles.journeyStep}>
+                <View style={[
+                  styles.stepIndicator, 
+                  progress >= 0.5 && styles.stepIndicatorActive
+                ]}>
+                  {progress >= 0.8 ? (
+                    <IconSymbol name="checkmark" size={16} color="#FFFFFF" />
+                  ) : (
+                    <View style={styles.stepDot} />
+                  )}
+                </View>
+                <View style={styles.stepContent}>
+                  <Text style={styles.stepTitle}>In Transit</Text>
+                  <Text style={styles.stepSubtitle}>Package picked up</Text>
+                </View>
+              </View>
+
+              <View style={styles.stepConnector} />
+
+              <View style={styles.journeyStep}>
+                <View style={[
+                  styles.stepIndicator, 
+                  progress >= 1 && styles.stepIndicatorActive
+                ]}>
+                  {progress >= 1 ? (
+                    <IconSymbol name="checkmark" size={16} color="#FFFFFF" />
+                  ) : (
+                    <View style={styles.stepDot} />
+                  )}
+                </View>
+                <View style={styles.stepContent}>
+                  <Text style={styles.stepTitle}>Delivery Location</Text>
+                  <Text style={styles.stepSubtitle}>Final destination</Text>
+                </View>
+              </View>
+            </View>
           </View>
-          <View style={styles.instructionItem}>
-            <IconSymbol name="phone.fill" size={20} color={colors.secondary} />
-            <Text style={styles.instructionText}>
-              The runner may call you for directions
-            </Text>
+
+          {/* Runner Location Card */}
+          {runnerLocation && (
+            <View style={[commonStyles.card, styles.locationCard]}>
+              <View style={styles.locationHeader}>
+                <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+                  <View style={styles.runnerMarker}>
+                    <IconSymbol name="figure.walk" size={24} color="#FFFFFF" />
+                  </View>
+                </Animated.View>
+                <View style={styles.locationInfo}>
+                  <Text style={styles.locationTitle}>Runner Location</Text>
+                  <Text style={styles.locationSubtitle}>Last updated: just now</Text>
+                </View>
+              </View>
+
+              <View style={styles.coordinatesContainer}>
+                <View style={styles.coordinateRow}>
+                  <Text style={styles.coordinateLabel}>Latitude:</Text>
+                  <Text style={styles.coordinateValue}>
+                    {runnerLocation.latitude.toFixed(6)}
+                  </Text>
+                </View>
+                <View style={styles.coordinateRow}>
+                  <Text style={styles.coordinateLabel}>Longitude:</Text>
+                  <Text style={styles.coordinateValue}>
+                    {runnerLocation.longitude.toFixed(6)}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.mapPlaceholder}>
+                <IconSymbol name="map.fill" size={48} color={colors.textSecondary} />
+                <Text style={styles.mapPlaceholderText}>
+                  Map visualization would appear here
+                </Text>
+                <Text style={commonStyles.textSecondary}>
+                  {Platform.OS === 'web' 
+                    ? '(Use Google Maps API or Leaflet for web maps)'
+                    : '(Interactive maps not available in Natively)'}
+                </Text>
+              </View>
+            </View>
+          )}
+
+          {/* Action Buttons */}
+          <View style={styles.actionsContainer}>
+            <Pressable 
+              style={[buttonStyles.whatsapp, styles.actionButton]}
+              onPress={contactRunner}
+            >
+              <IconSymbol name="message.fill" size={20} color="#FFFFFF" />
+              <Text style={commonStyles.buttonText}>Contact Runner</Text>
+            </Pressable>
+
+            <Pressable 
+              style={[buttonStyles.outline, styles.actionButton]}
+              onPress={() => router.back()}
+            >
+              <IconSymbol name="arrow.left" size={20} color={colors.primary} />
+              <Text style={commonStyles.buttonTextPrimary}>Back to Dashboard</Text>
+            </Pressable>
           </View>
-          <View style={styles.instructionItem}>
-            <IconSymbol name="checkmark.circle.fill" size={20} color={colors.secondary} />
-            <Text style={styles.instructionText}>
-              Please confirm delivery upon receipt
-            </Text>
+
+          {/* Delivery Instructions */}
+          <View style={[commonStyles.card, styles.instructionsCard]}>
+            <Text style={styles.instructionsTitle}>Delivery Instructions</Text>
+            <View style={styles.instructionItem}>
+              <IconSymbol name="bell.fill" size={20} color={colors.secondary} />
+              <Text style={styles.instructionText}>
+                You'll receive a notification when the runner arrives
+              </Text>
+            </View>
+            <View style={styles.instructionItem}>
+              <IconSymbol name="phone.fill" size={20} color={colors.secondary} />
+              <Text style={styles.instructionText}>
+                The runner may call you for directions
+              </Text>
+            </View>
+            <View style={styles.instructionItem}>
+              <IconSymbol name="checkmark.circle.fill" size={20} color={colors.secondary} />
+              <Text style={styles.instructionText}>
+                Please confirm delivery upon receipt
+              </Text>
+            </View>
           </View>
         </View>
       </ScrollView>
@@ -326,10 +330,22 @@ export default function TrackingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    ...(Platform.OS === 'web' && {
+      maxWidth: 1200,
+      marginHorizontal: 'auto',
+      width: '100%',
+    }),
   },
   scrollContent: {
+    paddingBottom: Platform.OS === 'ios' ? 20 : Platform.OS === 'web' ? 40 : 100,
+  },
+  contentWrapper: {
     padding: 20,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 100,
+    ...(Platform.OS === 'web' && {
+      maxWidth: 800,
+      marginHorizontal: 'auto',
+      width: '100%',
+    }),
   },
   mapNotice: {
     flexDirection: 'row',
@@ -473,8 +489,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.secondary,
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: '0px 4px 12px rgba(0, 128, 128, 0.3)',
-    elevation: 4,
+    ...(Platform.OS === 'web' 
+      ? { boxShadow: '0px 4px 12px rgba(0, 128, 128, 0.3)' }
+      : { elevation: 4 }),
   },
   locationInfo: {
     flex: 1,
@@ -510,7 +527,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: colors.text,
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : Platform.OS === 'web' ? 'monospace' : 'monospace',
   },
   mapPlaceholder: {
     height: 200,

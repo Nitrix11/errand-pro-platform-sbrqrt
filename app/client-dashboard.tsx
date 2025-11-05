@@ -13,57 +13,64 @@ import {
 import { IconSymbol } from "@/components/IconSymbol";
 import { colors, commonStyles, buttonStyles } from "@/styles/commonStyles";
 
-// Mock data - in a real app, this would come from a backend
-const mockBookings = [
-  {
-    id: "1",
-    pickupAddress: "123 Main St, Harare",
-    dropoffAddress: "456 Park Ave, Harare",
-    packageType: "Documents",
-    proposedPrice: "8.50",
-    status: "In Progress",
-    createdAt: "2025-01-10T10:30:00Z",
-    estimatedDelivery: "2025-01-10T12:00:00Z",
-    pickupLocation: { latitude: -17.8252, longitude: 31.0335 },
-    dropoffLocation: { latitude: -17.8352, longitude: 31.0435 },
-  },
-  {
-    id: "2",
-    pickupAddress: "789 Oak Rd, Bulawayo",
-    dropoffAddress: "321 Elm St, Bulawayo",
-    packageType: "Food Delivery",
-    proposedPrice: "12.00",
-    status: "Completed",
-    createdAt: "2025-01-09T14:20:00Z",
-    completedAt: "2025-01-09T15:45:00Z",
-    pickupLocation: { latitude: -20.1500, longitude: 28.5833 },
-    dropoffLocation: { latitude: -20.1600, longitude: 28.5933 },
-  },
-  {
-    id: "3",
-    pickupAddress: "555 Pine St, Harare",
-    dropoffAddress: "777 Maple Dr, Harare",
-    packageType: "Parcel",
-    proposedPrice: "15.00",
-    status: "Pending",
-    createdAt: "2025-01-10T09:00:00Z",
-    pickupLocation: { latitude: -17.8152, longitude: 31.0235 },
-    dropoffLocation: { latitude: -17.8452, longitude: 31.0535 },
-  },
-];
+interface Booking {
+  id: string;
+  pickupAddress: string;
+  dropoffAddress: string;
+  packageType: string;
+  proposedPrice: string;
+  status: 'Pending' | 'Accepted' | 'In Progress' | 'Completed' | 'Rejected';
+  createdAt: string;
+  estimatedTime?: string;
+}
 
 export default function ClientDashboardScreen() {
   const router = useRouter();
-  const [bookings] = useState(mockBookings);
+  
+  // Mock data - in a real app, this would come from a backend/database
+  const [bookings] = useState<Booking[]>([
+    {
+      id: '1001',
+      pickupAddress: '123 Main St, Harare',
+      dropoffAddress: '456 Park Ave, Harare',
+      packageType: 'Documents',
+      proposedPrice: '10.00',
+      status: 'In Progress',
+      createdAt: '2025-01-10T10:30:00Z',
+      estimatedTime: '15 mins',
+    },
+    {
+      id: '1002',
+      pickupAddress: '789 Oak Rd, Bulawayo',
+      dropoffAddress: '321 Elm St, Bulawayo',
+      packageType: 'Food Delivery',
+      proposedPrice: '8.50',
+      status: 'Completed',
+      createdAt: '2025-01-09T14:20:00Z',
+    },
+    {
+      id: '1003',
+      pickupAddress: '555 Pine St, Harare',
+      dropoffAddress: '777 Cedar Ave, Harare',
+      packageType: 'Parcel',
+      proposedPrice: '12.00',
+      status: 'Pending',
+      createdAt: '2025-01-08T09:15:00Z',
+    },
+  ]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "Pending":
-        return colors.warning;
-      case "In Progress":
-        return colors.secondary;
-      case "Completed":
+      case 'Completed':
         return colors.success;
+      case 'In Progress':
+        return colors.secondary;
+      case 'Accepted':
+        return colors.primary;
+      case 'Pending':
+        return colors.warning;
+      case 'Rejected':
+        return colors.error;
       default:
         return colors.textSecondary;
     }
@@ -71,29 +78,30 @@ export default function ClientDashboardScreen() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "Pending":
-        return "clock.fill";
-      case "In Progress":
-        return "arrow.right.circle.fill";
-      case "Completed":
-        return "checkmark.circle.fill";
+      case 'Completed':
+        return 'checkmark.circle.fill';
+      case 'In Progress':
+        return 'arrow.right.circle.fill';
+      case 'Accepted':
+        return 'hand.thumbsup.fill';
+      case 'Pending':
+        return 'clock.fill';
+      case 'Rejected':
+        return 'xmark.circle.fill';
       default:
-        return "circle.fill";
+        return 'circle.fill';
     }
   };
 
   const contactRunner = (bookingId: string) => {
     const phoneNumber = "263779925482";
-    const message = `Hi! I'm checking on my errand (Booking ID: ${bookingId})`;
+    const message = `Hi! I need help with my booking #${bookingId}`;
     const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     Linking.openURL(url);
   };
 
   const trackErrand = (bookingId: string) => {
-    router.push({
-      pathname: '/tracking',
-      params: { bookingId },
-    });
+    router.push(`/tracking?bookingId=${bookingId}`);
   };
 
   const formatDate = (dateString: string) => {
@@ -123,172 +131,137 @@ export default function ClientDashboardScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header Stats */}
-        <View style={styles.statsContainer}>
-          <View style={[commonStyles.card, styles.statCard]}>
-            <Text style={styles.statValue}>{bookings.length}</Text>
-            <Text style={styles.statLabel}>Total Errands</Text>
-          </View>
-          <View style={[commonStyles.card, styles.statCard]}>
-            <Text style={styles.statValue}>
-              {bookings.filter(b => b.status === "In Progress").length}
+        <View style={styles.contentWrapper}>
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={commonStyles.title}>My Bookings</Text>
+            <Text style={commonStyles.textSecondary}>
+              Track and manage your errand requests
             </Text>
-            <Text style={styles.statLabel}>Active</Text>
           </View>
-          <View style={[commonStyles.card, styles.statCard]}>
-            <Text style={styles.statValue}>
-              {bookings.filter(b => b.status === "Completed").length}
-            </Text>
-            <Text style={styles.statLabel}>Completed</Text>
+
+          {/* Quick Actions */}
+          <View style={styles.quickActions}>
+            <Pressable 
+              style={[buttonStyles.primary, styles.actionButton]}
+              onPress={() => router.push('/booking')}
+            >
+              <IconSymbol name="plus.circle.fill" size={20} color="#FFFFFF" />
+              <Text style={commonStyles.buttonText}>New Errand</Text>
+            </Pressable>
+
+            <Pressable 
+              style={[buttonStyles.whatsapp, styles.actionButton]}
+              onPress={() => contactRunner('general')}
+            >
+              <IconSymbol name="message.fill" size={20} color="#FFFFFF" />
+              <Text style={commonStyles.buttonText}>Contact Support</Text>
+            </Pressable>
           </View>
-        </View>
 
-        {/* Quick Actions */}
-        <View style={styles.quickActionsContainer}>
-          <Pressable 
-            style={[buttonStyles.primary, styles.quickActionButton]}
-            onPress={() => router.push('/booking')}
-          >
-            <IconSymbol name="plus.circle.fill" size={20} color="#FFFFFF" />
-            <Text style={commonStyles.buttonText}>New Errand</Text>
-          </Pressable>
-        </View>
-
-        {/* Active Tracking Section */}
-        {bookings.filter(b => b.status === "In Progress").length > 0 && (
-          <View style={styles.trackingSection}>
+          {/* Bookings List */}
+          <View style={styles.bookingsSection}>
             <Text style={[commonStyles.subtitle, styles.sectionTitle]}>
-              Active Tracking
+              Recent Errands
             </Text>
-            {bookings
-              .filter(b => b.status === "In Progress")
-              .map((booking) => (
-                <Pressable
-                  key={booking.id}
-                  style={[commonStyles.card, styles.trackingCard]}
-                  onPress={() => trackErrand(booking.id)}
+
+            {bookings.length === 0 ? (
+              <View style={[commonStyles.card, styles.emptyState]}>
+                <IconSymbol name="tray.fill" size={48} color={colors.textSecondary} />
+                <Text style={styles.emptyStateText}>No errands yet</Text>
+                <Text style={commonStyles.textSecondary}>
+                  Start by requesting your first errand
+                </Text>
+                <Pressable 
+                  style={[buttonStyles.primary, styles.emptyStateButton]}
+                  onPress={() => router.push('/booking')}
                 >
-                  <View style={styles.trackingHeader}>
-                    <View style={styles.trackingIcon}>
-                      <IconSymbol name="location.fill" size={24} color="#FFFFFF" />
-                    </View>
-                    <View style={styles.trackingInfo}>
-                      <Text style={styles.trackingTitle}>Errand #{booking.id}</Text>
-                      <Text style={styles.trackingSubtitle}>Tap to track in real-time</Text>
-                    </View>
-                    <IconSymbol name="chevron.right" size={24} color={colors.primary} />
-                  </View>
-                  <View style={styles.trackingProgress}>
-                    <View style={styles.progressBar}>
-                      <View style={[styles.progressFill, { width: '60%' }]} />
-                    </View>
-                    <Text style={styles.progressText}>On the way to delivery</Text>
-                  </View>
+                  <Text style={commonStyles.buttonText}>Request Errand</Text>
                 </Pressable>
-              ))}
-          </View>
-        )}
-
-        {/* Bookings List */}
-        <View style={styles.bookingsSection}>
-          <Text style={[commonStyles.subtitle, styles.sectionTitle]}>
-            Recent Errands
-          </Text>
-
-          {bookings.length === 0 ? (
-            <View style={[commonStyles.card, styles.emptyState]}>
-              <IconSymbol name="tray.fill" size={48} color={colors.textSecondary} />
-              <Text style={styles.emptyStateText}>No errands yet</Text>
-              <Text style={commonStyles.textSecondary}>
-                Start by requesting your first errand
-              </Text>
-            </View>
-          ) : (
-            bookings.map((booking) => (
-              <View key={booking.id} style={[commonStyles.card, styles.bookingCard]}>
-                {/* Status Badge */}
-                <View style={styles.bookingHeader}>
-                  <View 
-                    style={[
-                      commonStyles.badge, 
-                      { backgroundColor: getStatusColor(booking.status) }
-                    ]}
-                  >
-                    <Text style={commonStyles.badgeText}>{booking.status}</Text>
-                  </View>
-                  <Text style={styles.bookingId}>#{booking.id}</Text>
-                </View>
-
-                {/* Locations */}
-                <View style={styles.locationContainer}>
-                  <View style={styles.locationRow}>
-                    <IconSymbol name="location.fill" size={20} color={colors.primary} />
-                    <View style={styles.locationText}>
-                      <Text style={styles.locationLabel}>Pickup</Text>
-                      <Text style={styles.locationAddress}>{booking.pickupAddress}</Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.locationDivider}>
-                    <View style={styles.dividerLine} />
-                    <IconSymbol name="arrow.down" size={16} color={colors.textSecondary} />
-                    <View style={styles.dividerLine} />
-                  </View>
-
-                  <View style={styles.locationRow}>
-                    <IconSymbol name="mappin.circle.fill" size={20} color={colors.secondary} />
-                    <View style={styles.locationText}>
-                      <Text style={styles.locationLabel}>Drop-off</Text>
-                      <Text style={styles.locationAddress}>{booking.dropoffAddress}</Text>
-                    </View>
-                  </View>
-                </View>
-
-                {/* Details */}
-                <View style={styles.detailsContainer}>
-                  <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Package:</Text>
-                    <Text style={styles.detailValue}>{booking.packageType}</Text>
-                  </View>
-                  <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Price:</Text>
-                    <Text style={[styles.detailValue, styles.priceText]}>
-                      ${booking.proposedPrice}
-                    </Text>
-                  </View>
-                  <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Requested:</Text>
-                    <Text style={styles.detailValue}>{formatDate(booking.createdAt)}</Text>
-                  </View>
-                </View>
-
-                {/* Actions */}
-                <View style={styles.cardActions}>
-                  <Pressable 
-                    style={[buttonStyles.whatsapp, styles.cardActionButton]}
-                    onPress={() => contactRunner(booking.id)}
-                  >
-                    <IconSymbol name="message.fill" size={18} color="#FFFFFF" />
-                    <Text style={[commonStyles.buttonText, styles.cardActionText]}>
-                      Contact
-                    </Text>
-                  </Pressable>
-
-                  {booking.status === "In Progress" && (
-                    <Pressable 
-                      style={[buttonStyles.secondary, styles.cardActionButton]}
-                      onPress={() => trackErrand(booking.id)}
-                    >
-                      <IconSymbol name="location.fill" size={18} color="#FFFFFF" />
-                      <Text style={[commonStyles.buttonText, styles.cardActionText]}>
-                        Track Live
-                      </Text>
-                    </Pressable>
-                  )}
-                </View>
               </View>
-            ))
-          )}
+            ) : (
+              <View style={styles.bookingsList}>
+                {bookings.map((booking) => (
+                  <View key={booking.id} style={[commonStyles.card, styles.bookingCard]}>
+                    {/* Booking Header */}
+                    <View style={styles.bookingHeader}>
+                      <View style={styles.bookingIdContainer}>
+                        <Text style={styles.bookingId}>#{booking.id}</Text>
+                        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(booking.status) }]}>
+                          <IconSymbol 
+                            name={getStatusIcon(booking.status) as any} 
+                            size={14} 
+                            color="#FFFFFF" 
+                          />
+                          <Text style={styles.statusText}>{booking.status}</Text>
+                        </View>
+                      </View>
+                      <Text style={styles.bookingDate}>{formatDate(booking.createdAt)}</Text>
+                    </View>
+
+                    {/* Booking Details */}
+                    <View style={styles.bookingDetails}>
+                      <View style={styles.locationRow}>
+                        <IconSymbol name="location.fill" size={20} color={colors.primary} />
+                        <View style={styles.locationInfo}>
+                          <Text style={styles.locationLabel}>Pickup</Text>
+                          <Text style={styles.locationAddress}>{booking.pickupAddress}</Text>
+                        </View>
+                      </View>
+
+                      <View style={styles.locationConnector} />
+
+                      <View style={styles.locationRow}>
+                        <IconSymbol name="mappin.circle.fill" size={20} color={colors.secondary} />
+                        <View style={styles.locationInfo}>
+                          <Text style={styles.locationLabel}>Drop-off</Text>
+                          <Text style={styles.locationAddress}>{booking.dropoffAddress}</Text>
+                        </View>
+                      </View>
+                    </View>
+
+                    {/* Package Info */}
+                    <View style={styles.packageInfo}>
+                      <View style={styles.infoItem}>
+                        <IconSymbol name="shippingbox.fill" size={18} color={colors.textSecondary} />
+                        <Text style={styles.infoText}>{booking.packageType}</Text>
+                      </View>
+                      <View style={styles.infoItem}>
+                        <IconSymbol name="dollarsign.circle.fill" size={18} color={colors.textSecondary} />
+                        <Text style={styles.infoText}>${booking.proposedPrice}</Text>
+                      </View>
+                      {booking.estimatedTime && (
+                        <View style={styles.infoItem}>
+                          <IconSymbol name="clock.fill" size={18} color={colors.textSecondary} />
+                          <Text style={styles.infoText}>{booking.estimatedTime}</Text>
+                        </View>
+                      )}
+                    </View>
+
+                    {/* Action Buttons */}
+                    <View style={styles.bookingActions}>
+                      {booking.status === 'In Progress' && (
+                        <Pressable 
+                          style={[buttonStyles.primary, styles.bookingActionButton]}
+                          onPress={() => trackErrand(booking.id)}
+                        >
+                          <IconSymbol name="location.circle.fill" size={18} color="#FFFFFF" />
+                          <Text style={commonStyles.buttonText}>Track</Text>
+                        </Pressable>
+                      )}
+                      <Pressable 
+                        style={[buttonStyles.outline, styles.bookingActionButton]}
+                        onPress={() => contactRunner(booking.id)}
+                      >
+                        <IconSymbol name="message.fill" size={18} color={colors.primary} />
+                        <Text style={commonStyles.buttonTextPrimary}>Contact</Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
         </View>
       </ScrollView>
     </>
@@ -298,138 +271,95 @@ export default function ClientDashboardScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    ...(Platform.OS === 'web' && {
+      maxWidth: 1200,
+      marginHorizontal: 'auto',
+      width: '100%',
+    }),
   },
   scrollContent: {
-    paddingBottom: Platform.OS === 'ios' ? 20 : 100,
+    paddingBottom: Platform.OS === 'ios' ? 20 : Platform.OS === 'web' ? 40 : 100,
   },
-  statsContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    paddingTop: 20,
+  contentWrapper: {
+    padding: 20,
+    ...(Platform.OS === 'web' && {
+      maxWidth: 900,
+      marginHorizontal: 'auto',
+      width: '100%',
+    }),
+  },
+  header: {
+    marginBottom: 20,
+  },
+  quickActions: {
+    flexDirection: Platform.OS === 'web' ? 'row' : 'column',
     gap: 12,
+    marginBottom: 24,
   },
-  statCard: {
-    flex: 1,
-    alignItems: 'center',
-    padding: 16,
-  },
-  statValue: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: colors.primary,
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 13,
-    color: colors.textSecondary,
-  },
-  quickActionsContainer: {
-    paddingHorizontal: 20,
-    marginTop: 20,
-  },
-  quickActionButton: {
+  actionButton: {
     flexDirection: 'row',
     gap: 8,
+    ...(Platform.OS === 'web' && {
+      flex: 1,
+    }),
   },
-  trackingSection: {
-    paddingHorizontal: 20,
-    marginTop: 32,
+  bookingsSection: {
+    marginTop: 8,
   },
   sectionTitle: {
     marginBottom: 16,
   },
-  trackingCard: {
-    marginBottom: 16,
-    backgroundColor: colors.highlight,
-    borderWidth: 2,
-    borderColor: colors.secondary,
-  },
-  trackingHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  trackingIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.secondary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  trackingInfo: {
-    flex: 1,
-    marginLeft: 16,
-  },
-  trackingTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: 4,
-  },
-  trackingSubtitle: {
-    fontSize: 14,
-    color: colors.textSecondary,
-  },
-  trackingProgress: {
-    marginTop: 8,
-  },
-  progressBar: {
-    height: 6,
-    backgroundColor: colors.border,
-    borderRadius: 3,
-    overflow: 'hidden',
-    marginBottom: 8,
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: colors.secondary,
-    borderRadius: 3,
-  },
-  progressText: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    fontWeight: '600',
-  },
-  bookingsSection: {
-    paddingHorizontal: 20,
-    marginTop: 32,
-  },
-  emptyState: {
-    alignItems: 'center',
-    padding: 40,
-  },
-  emptyStateText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text,
-    marginTop: 16,
-    marginBottom: 8,
+  bookingsList: {
+    gap: 16,
   },
   bookingCard: {
-    marginBottom: 16,
+    padding: 16,
   },
   bookingHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  bookingIdContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   bookingId: {
-    fontSize: 14,
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+  },
+  statusText: {
+    fontSize: 12,
     fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  bookingDate: {
+    fontSize: 13,
     color: colors.textSecondary,
   },
-  locationContainer: {
+  bookingDetails: {
     marginBottom: 16,
   },
   locationRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
+    gap: 12,
   },
-  locationText: {
+  locationInfo: {
     flex: 1,
-    marginLeft: 12,
   },
   locationLabel: {
     fontSize: 12,
@@ -438,56 +368,59 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   locationAddress: {
-    fontSize: 15,
+    fontSize: 14,
     color: colors.text,
     lineHeight: 20,
   },
-  locationDivider: {
+  locationConnector: {
+    width: 2,
+    height: 16,
+    backgroundColor: colors.border,
+    marginLeft: 9,
+    marginVertical: 4,
+  },
+  packageInfo: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    marginBottom: 12,
+  },
+  infoItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 8,
-    marginLeft: 10,
+    gap: 6,
   },
-  dividerLine: {
-    width: 1,
-    height: 12,
-    backgroundColor: colors.border,
-  },
-  detailsContainer: {
-    backgroundColor: colors.highlight,
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 16,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  detailLabel: {
-    fontSize: 14,
-    color: colors.textSecondary,
-  },
-  detailValue: {
+  infoText: {
     fontSize: 14,
     fontWeight: '600',
     color: colors.text,
   },
-  priceText: {
-    color: colors.primary,
-    fontSize: 16,
-  },
-  cardActions: {
+  bookingActions: {
     flexDirection: 'row',
     gap: 8,
   },
-  cardActionButton: {
+  bookingActionButton: {
     flex: 1,
     flexDirection: 'row',
     gap: 6,
     paddingVertical: 10,
   },
-  cardActionText: {
-    fontSize: 14,
+  emptyState: {
+    alignItems: 'center',
+    padding: 40,
+  },
+  emptyStateText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptyStateButton: {
+    marginTop: 16,
+    minWidth: 200,
   },
 });

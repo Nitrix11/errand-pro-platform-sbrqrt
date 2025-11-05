@@ -1,45 +1,57 @@
 
-import { SafeAreaView } from "react-native-safe-area-context";
-import { IconSymbol } from "@/components/IconSymbol";
 import React from "react";
-import { View, Text, StyleSheet, ScrollView, Platform, Pressable, Linking } from "react-native";
-import { colors, commonStyles } from "@/styles/commonStyles";
 import { Stack, useRouter } from "expo-router";
+import { View, Text, StyleSheet, ScrollView, Platform, Pressable, Linking } from "react-native";
+import { IconSymbol } from "@/components/IconSymbol";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { colors, commonStyles, buttonStyles } from "@/styles/commonStyles";
 
 export default function ProfileScreen() {
   const router = useRouter();
 
   const openWhatsApp = () => {
     const phoneNumber = "263779925482";
-    const message = "Hi! I need help with Mr Errands Guy.";
+    const message = "Hi! I need help with my account.";
     const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     Linking.openURL(url);
   };
 
   const menuItems = [
     {
-      icon: "person.circle.fill",
-      title: "About Us",
-      description: "Learn more about Mr Errands Guy",
-      onPress: () => console.log("About Us"),
+      icon: 'person.circle.fill',
+      title: 'Account Settings',
+      subtitle: 'Manage your profile and preferences',
+      onPress: () => console.log('Account Settings'),
     },
     {
-      icon: "questionmark.circle.fill",
-      title: "FAQ",
-      description: "Frequently asked questions",
-      onPress: () => console.log("FAQ"),
+      icon: 'bell.fill',
+      title: 'Notifications',
+      subtitle: 'Configure notification preferences',
+      onPress: () => console.log('Notifications'),
     },
     {
-      icon: "doc.text.fill",
-      title: "Terms & Conditions",
-      description: "Read our terms of service",
-      onPress: () => console.log("Terms"),
+      icon: 'creditcard.fill',
+      title: 'Payment Methods',
+      subtitle: 'Manage your payment options',
+      onPress: () => console.log('Payment Methods'),
     },
     {
-      icon: "message.fill",
-      title: "Contact Support",
-      description: "Get help via WhatsApp",
+      icon: 'clock.fill',
+      title: 'Order History',
+      subtitle: 'View all your past errands',
+      onPress: () => router.push('/client-dashboard'),
+    },
+    {
+      icon: 'questionmark.circle.fill',
+      title: 'Help & Support',
+      subtitle: 'Get help or contact support',
       onPress: openWhatsApp,
+    },
+    {
+      icon: 'doc.text.fill',
+      title: 'Terms & Privacy',
+      subtitle: 'Read our terms and privacy policy',
+      onPress: () => console.log('Terms & Privacy'),
     },
   ];
 
@@ -61,70 +73,94 @@ export default function ProfileScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Profile Header */}
-        <View style={styles.profileHeader}>
-          <View style={styles.avatarContainer}>
-            <IconSymbol name="person.circle.fill" size={80} color={colors.primary} />
-          </View>
-          <Text style={styles.profileName}>Mr Errands Guy</Text>
-          <Text style={styles.profileTagline}>Your Trusted Errand Runner</Text>
-        </View>
-
-        {/* Quick Stats */}
-        <View style={styles.statsContainer}>
-          <View style={[commonStyles.card, styles.statCard]}>
-            <IconSymbol name="checkmark.circle.fill" size={32} color={colors.success} />
-            <Text style={styles.statValue}>100+</Text>
-            <Text style={styles.statLabel}>Completed Errands</Text>
-          </View>
-          <View style={[commonStyles.card, styles.statCard]}>
-            <IconSymbol name="star.fill" size={32} color={colors.warning} />
-            <Text style={styles.statValue}>4.9</Text>
-            <Text style={styles.statLabel}>Rating</Text>
-          </View>
-        </View>
-
-        {/* Menu Items */}
-        <View style={styles.menuSection}>
-          {menuItems.map((item, index) => (
+        <View style={styles.contentWrapper}>
+          {/* Profile Header */}
+          <View style={[commonStyles.card, styles.profileHeader]}>
+            <View style={styles.avatarContainer}>
+              <View style={styles.avatar}>
+                <IconSymbol name="person.fill" size={48} color="#FFFFFF" />
+              </View>
+            </View>
+            <Text style={styles.userName}>Guest User</Text>
+            <Text style={commonStyles.textSecondary}>guest@mrerrandsguy.com</Text>
+            
             <Pressable 
-              key={index}
-              style={[commonStyles.card, styles.menuItem]}
-              onPress={item.onPress}
+              style={[buttonStyles.outline, styles.editButton]}
+              onPress={() => console.log('Edit Profile')}
             >
-              <View style={styles.menuIconContainer}>
-                <IconSymbol name={item.icon as any} size={28} color={colors.primary} />
-              </View>
-              <View style={styles.menuContent}>
-                <Text style={styles.menuTitle}>{item.title}</Text>
-                <Text style={styles.menuDescription}>{item.description}</Text>
-              </View>
-              <IconSymbol name="chevron.right" size={20} color={colors.textSecondary} />
+              <IconSymbol name="pencil" size={18} color={colors.primary} />
+              <Text style={commonStyles.buttonTextPrimary}>Edit Profile</Text>
             </Pressable>
-          ))}
-        </View>
+          </View>
 
-        {/* Contact Section */}
-        <View style={[commonStyles.card, styles.contactCard]}>
-          <IconSymbol name="phone.circle.fill" size={40} color={colors.secondary} />
-          <Text style={styles.contactTitle}>Need Help?</Text>
-          <Text style={styles.contactDescription}>
-            Contact us on WhatsApp for immediate assistance
-          </Text>
-          <Pressable 
-            style={styles.whatsappButton}
-            onPress={openWhatsApp}
-          >
-            <IconSymbol name="message.fill" size={20} color="#FFFFFF" />
-            <Text style={styles.whatsappButtonText}>Chat on WhatsApp</Text>
-          </Pressable>
-          <Text style={styles.phoneNumber}>+263 779 925 482</Text>
-        </View>
+          {/* Quick Stats */}
+          <View style={styles.statsContainer}>
+            <View style={[commonStyles.card, styles.statCard]}>
+              <IconSymbol name="shippingbox.fill" size={32} color={colors.primary} />
+              <Text style={styles.statValue}>12</Text>
+              <Text style={styles.statLabel}>Total Errands</Text>
+            </View>
+            <View style={[commonStyles.card, styles.statCard]}>
+              <IconSymbol name="star.fill" size={32} color={colors.secondary} />
+              <Text style={styles.statValue}>4.8</Text>
+              <Text style={styles.statLabel}>Rating</Text>
+            </View>
+            <View style={[commonStyles.card, styles.statCard]}>
+              <IconSymbol name="dollarsign.circle.fill" size={32} color={colors.primary} />
+              <Text style={styles.statValue}>$156</Text>
+              <Text style={styles.statLabel}>Total Spent</Text>
+            </View>
+          </View>
 
-        {/* App Info */}
-        <View style={styles.appInfo}>
-          <Text style={styles.appInfoText}>Mr Errands Guy v1.0.0</Text>
-          <Text style={styles.appInfoText}>© 2025 All Rights Reserved</Text>
+          {/* Menu Items */}
+          <View style={styles.menuSection}>
+            <Text style={[commonStyles.subtitle, styles.sectionTitle]}>Settings</Text>
+            {menuItems.map((item, index) => (
+              <Pressable
+                key={index}
+                style={[commonStyles.card, styles.menuItem]}
+                onPress={item.onPress}
+              >
+                <View style={styles.menuIconContainer}>
+                  <IconSymbol name={item.icon as any} size={24} color={colors.primary} />
+                </View>
+                <View style={styles.menuContent}>
+                  <Text style={styles.menuTitle}>{item.title}</Text>
+                  <Text style={styles.menuSubtitle}>{item.subtitle}</Text>
+                </View>
+                <IconSymbol name="chevron.right" size={20} color={colors.textSecondary} />
+              </Pressable>
+            ))}
+          </View>
+
+          {/* Quick Actions */}
+          <View style={styles.actionsSection}>
+            <Pressable 
+              style={[buttonStyles.whatsapp, styles.actionButton]}
+              onPress={openWhatsApp}
+            >
+              <IconSymbol name="message.fill" size={20} color="#FFFFFF" />
+              <Text style={commonStyles.buttonText}>Contact Support</Text>
+            </Pressable>
+
+            <Pressable 
+              style={[buttonStyles.outline, styles.actionButton]}
+              onPress={() => console.log('Logout')}
+            >
+              <IconSymbol name="arrow.right.square.fill" size={20} color={colors.error} />
+              <Text style={[commonStyles.buttonTextPrimary, { color: colors.error }]}>
+                Logout
+              </Text>
+            </Pressable>
+          </View>
+
+          {/* App Info */}
+          <View style={styles.appInfo}>
+            <Text style={styles.appInfoText}>Mr Errands Guy v1.0.0</Text>
+            <Text style={commonStyles.textSecondary}>
+              {Platform.OS === 'web' ? 'Web Version' : `${Platform.OS.charAt(0).toUpperCase() + Platform.OS.slice(1)} Version`}
+            </Text>
+          </View>
         </View>
       </ScrollView>
     </>
@@ -134,68 +170,101 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    ...(Platform.OS === 'web' && {
+      maxWidth: 1200,
+      marginHorizontal: 'auto',
+      width: '100%',
+    }),
   },
   scrollContent: {
-    paddingBottom: Platform.OS === 'ios' ? 20 : 100,
+    paddingBottom: Platform.OS === 'ios' ? 20 : Platform.OS === 'web' ? 40 : 100,
+  },
+  contentWrapper: {
+    padding: 20,
+    ...(Platform.OS === 'web' && {
+      maxWidth: 800,
+      marginHorizontal: 'auto',
+      width: '100%',
+    }),
   },
   profileHeader: {
     alignItems: 'center',
-    paddingVertical: 32,
-    paddingHorizontal: 20,
+    padding: 24,
+    marginBottom: 16,
   },
   avatarContainer: {
     marginBottom: 16,
   },
-  profileName: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: colors.text,
-    marginBottom: 6,
+  avatar: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...(Platform.OS === 'web' 
+      ? { boxShadow: '0px 4px 12px rgba(128, 0, 128, 0.2)' }
+      : { elevation: 4 }),
   },
-  profileTagline: {
-    fontSize: 16,
-    color: colors.textSecondary,
+  userName: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  editButton: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 16,
+    minWidth: 150,
   },
   statsContainer: {
     flexDirection: 'row',
-    paddingHorizontal: 20,
     gap: 12,
     marginBottom: 24,
+    ...(Platform.OS === 'web' && {
+      justifyContent: 'center',
+      flexWrap: 'wrap',
+    }),
   },
   statCard: {
     flex: 1,
     alignItems: 'center',
-    padding: 20,
+    padding: 16,
+    minWidth: Platform.OS === 'web' ? 150 : undefined,
   },
   statValue: {
     fontSize: 24,
-    fontWeight: '800',
-    color: colors.primary,
+    fontWeight: '700',
+    color: colors.text,
     marginTop: 8,
     marginBottom: 4,
   },
   statLabel: {
-    fontSize: 13,
+    fontSize: 12,
     color: colors.textSecondary,
     textAlign: 'center',
   },
   menuSection: {
-    paddingHorizontal: 20,
-    gap: 12,
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    marginBottom: 12,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
+    marginBottom: 8,
   },
   menuIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: colors.highlight,
-    justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    justifyContent: 'center',
+    marginRight: 12,
   },
   menuContent: {
     flex: 1,
@@ -204,60 +273,28 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: colors.text,
-    marginBottom: 4,
+    marginBottom: 2,
   },
-  menuDescription: {
+  menuSubtitle: {
     fontSize: 13,
     color: colors.textSecondary,
   },
-  contactCard: {
-    marginHorizontal: 20,
-    marginTop: 24,
-    alignItems: 'center',
-    padding: 24,
-    backgroundColor: colors.highlight,
+  actionsSection: {
+    gap: 12,
+    marginBottom: 24,
   },
-  contactTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: colors.text,
-    marginTop: 12,
-    marginBottom: 8,
-  },
-  contactDescription: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  whatsappButton: {
+  actionButton: {
     flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#25D366',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 12,
     gap: 8,
-    marginBottom: 12,
-  },
-  whatsappButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  phoneNumber: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.primary,
   },
   appInfo: {
     alignItems: 'center',
-    paddingVertical: 24,
-    paddingHorizontal: 20,
+    paddingVertical: 20,
   },
   appInfoText: {
-    fontSize: 12,
-    color: colors.textSecondary,
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text,
     marginBottom: 4,
   },
 });
