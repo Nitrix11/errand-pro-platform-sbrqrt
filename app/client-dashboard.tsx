@@ -24,6 +24,8 @@ const mockBookings = [
     status: "In Progress",
     createdAt: "2025-01-10T10:30:00Z",
     estimatedDelivery: "2025-01-10T12:00:00Z",
+    pickupLocation: { latitude: -17.8252, longitude: 31.0335 },
+    dropoffLocation: { latitude: -17.8352, longitude: 31.0435 },
   },
   {
     id: "2",
@@ -34,6 +36,8 @@ const mockBookings = [
     status: "Completed",
     createdAt: "2025-01-09T14:20:00Z",
     completedAt: "2025-01-09T15:45:00Z",
+    pickupLocation: { latitude: -20.1500, longitude: 28.5833 },
+    dropoffLocation: { latitude: -20.1600, longitude: 28.5933 },
   },
   {
     id: "3",
@@ -43,6 +47,8 @@ const mockBookings = [
     proposedPrice: "15.00",
     status: "Pending",
     createdAt: "2025-01-10T09:00:00Z",
+    pickupLocation: { latitude: -17.8152, longitude: 31.0235 },
+    dropoffLocation: { latitude: -17.8452, longitude: 31.0535 },
   },
 ];
 
@@ -81,6 +87,13 @@ export default function ClientDashboardScreen() {
     const message = `Hi! I'm checking on my errand (Booking ID: ${bookingId})`;
     const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     Linking.openURL(url);
+  };
+
+  const trackErrand = (bookingId: string) => {
+    router.push({
+      pathname: '/tracking',
+      params: { bookingId },
+    });
   };
 
   const formatDate = (dateString: string) => {
@@ -140,6 +153,41 @@ export default function ClientDashboardScreen() {
             <Text style={commonStyles.buttonText}>New Errand</Text>
           </Pressable>
         </View>
+
+        {/* Active Tracking Section */}
+        {bookings.filter(b => b.status === "In Progress").length > 0 && (
+          <View style={styles.trackingSection}>
+            <Text style={[commonStyles.subtitle, styles.sectionTitle]}>
+              Active Tracking
+            </Text>
+            {bookings
+              .filter(b => b.status === "In Progress")
+              .map((booking) => (
+                <Pressable
+                  key={booking.id}
+                  style={[commonStyles.card, styles.trackingCard]}
+                  onPress={() => trackErrand(booking.id)}
+                >
+                  <View style={styles.trackingHeader}>
+                    <View style={styles.trackingIcon}>
+                      <IconSymbol name="location.fill" size={24} color="#FFFFFF" />
+                    </View>
+                    <View style={styles.trackingInfo}>
+                      <Text style={styles.trackingTitle}>Errand #{booking.id}</Text>
+                      <Text style={styles.trackingSubtitle}>Tap to track in real-time</Text>
+                    </View>
+                    <IconSymbol name="chevron.right" size={24} color={colors.primary} />
+                  </View>
+                  <View style={styles.trackingProgress}>
+                    <View style={styles.progressBar}>
+                      <View style={[styles.progressFill, { width: '60%' }]} />
+                    </View>
+                    <Text style={styles.progressText}>On the way to delivery</Text>
+                  </View>
+                </Pressable>
+              ))}
+          </View>
+        )}
 
         {/* Bookings List */}
         <View style={styles.bookingsSection}>
@@ -228,12 +276,12 @@ export default function ClientDashboardScreen() {
 
                   {booking.status === "In Progress" && (
                     <Pressable 
-                      style={[buttonStyles.outline, styles.cardActionButton]}
-                      onPress={() => console.log("Track errand:", booking.id)}
+                      style={[buttonStyles.secondary, styles.cardActionButton]}
+                      onPress={() => trackErrand(booking.id)}
                     >
-                      <IconSymbol name="location.fill" size={18} color={colors.primary} />
-                      <Text style={[commonStyles.buttonTextPrimary, styles.cardActionText]}>
-                        Track
+                      <IconSymbol name="location.fill" size={18} color="#FFFFFF" />
+                      <Text style={[commonStyles.buttonText, styles.cardActionText]}>
+                        Track Live
                       </Text>
                     </Pressable>
                   )}
@@ -283,12 +331,69 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
   },
-  bookingsSection: {
+  trackingSection: {
     paddingHorizontal: 20,
     marginTop: 32,
   },
   sectionTitle: {
     marginBottom: 16,
+  },
+  trackingCard: {
+    marginBottom: 16,
+    backgroundColor: colors.highlight,
+    borderWidth: 2,
+    borderColor: colors.secondary,
+  },
+  trackingHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  trackingIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.secondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  trackingInfo: {
+    flex: 1,
+    marginLeft: 16,
+  },
+  trackingTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  trackingSubtitle: {
+    fontSize: 14,
+    color: colors.textSecondary,
+  },
+  trackingProgress: {
+    marginTop: 8,
+  },
+  progressBar: {
+    height: 6,
+    backgroundColor: colors.border,
+    borderRadius: 3,
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: colors.secondary,
+    borderRadius: 3,
+  },
+  progressText: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    fontWeight: '600',
+  },
+  bookingsSection: {
+    paddingHorizontal: 20,
+    marginTop: 32,
   },
   emptyState: {
     alignItems: 'center',
